@@ -1,0 +1,45 @@
+version: '3'
+services:
+  db:
+    image: postgres:10-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:cached
+      - postgres_history:/var/log/psql_history:cached
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+  web:
+    extra_hosts:
+     - 'app.lc:127.0.0.1'
+    working_dir: /project
+    stdin_open: true
+    tty: true
+    build:
+      context: .
+      args:
+        - RAILS_ENV=development
+    ports:
+      - '3000:3000'
+    expose:
+      - '3000'
+    environment:
+      HISTFILE: /root/hist/.bash_history
+      RAILS_ENV: development
+      LAUNCHY_DRY_RUN: "true"
+      BROWSER: /dev/null
+      RECAPTCHA_SITE_KEY: 6LeOxI4dAAAAAOFlzAYH_4HitYPNJAqwmlREEnm6
+      RECAPTCHA_SECRET_KEY: 6LeOxI4dAAAAAAn5wRUg2kK6JS-BIBYtb9on9Ug2
+    volumes:
+      - web-sync:/project:nocopy
+      - bash_history:/root/hist
+      - postgres_history:/var/log/psql_history
+    links:
+      - db
+
+volumes:
+  web-sync:
+    external: true
+  postgres_data:
+  postgres_history:
+  bash_history:
